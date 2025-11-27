@@ -1,0 +1,10 @@
+package com.mr.blog.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.mr.blog.entity.MessageReply;
+import org.apache.ibatis.annotations.Mapper;
+
+@Mapper
+public interface MessageReplyMapper extends BaseMapper<MessageReply> {
+}
+

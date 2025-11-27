@@ -1,0 +1,48 @@
+server:
+  port: 9999
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: ooooooooooov@qq.com
+    password: fnfbuaoqvcjqdibb
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      id-type: auto
+  mapper-locations: classpath:mapper/*.xml
+
+# JWT配置
+jwt:
+  secret: blog-secret-key-2024-very-long-and-secure-string-for-jwt-signing
+  expiration: 604800000  # 7天过期（毫秒）
+
+# 文件上传配置
+file:
+  upload-path: E:/blog/blog-code/uploads/
+
+spring.servlet.multipart:
+  max-file-size: 10MB
+  max-request-size: 10MB

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mr.blog.mapper.RecordMapper">
+    
+    <!-- 结果映射 -->
+    <resultMap id="RecordVOResultMap" type="com.mr.blog.dto.RecordVO">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="summary" column="summary"/>
+        <result property="content" column="content"/>
+        <result property="cover" column="cover"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="category" column="category"/>
+        <result property="subCategory" column="sub_category"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="parentCategoryName" column="parent_category_name"/>
+        <result property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="views" column="views"/>
+        <result property="likes" column="likes"/>
+        <result property="status" column="status"/>
+        <result property="date" column="date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    
+    <!-- 分页查询记录 -->
+    <select id="selectRecordPage" resultMap="RecordVOResultMap">
+        SELECT 
+            r.id,
+            r.title,
+            r.summary,
+            r.cover,
+            r.category_id,
+            p.category_key AS category,
+            c.category_key AS sub_category,
+            c.name AS category_name,
+            p.name AS parent_category_name,
+            r.user_id,
+            u.username AS user_name,
+            r.views,
+            r.likes,
+            r.status,
+            DATE_FORMAT(r.created_at, '%Y-%m-%d') AS date,
+            r.created_at,
+            r.updated_at
+        FROM record r
+        INNER JOIN record_category c ON r.category_id = c.id
+        INNER JOIN record_category p ON c.parent_id = p.id
+        LEFT JOIN user u ON r.user_id = u.id
+        <where>
+            r.status = 1
+            <!-- 按一级分类筛选 -->
+            <if test="category != null and category != '' and category != 'all'">
+                AND p.category_key = #{category}
+            </if>
+            <!-- 按二级分类筛选 -->
+            <if test="subCategory != null and subCategory != ''">
+                AND c.category_key = #{subCategory}
+            </if>
+            <!-- 按标签筛选 -->
+            <if test="tag != null and tag != ''">
+                AND r.id IN (
+                    SELECT rtr.record_id FROM record_tag_relation rtr
+                    INNER JOIN record_tag rt ON rtr.tag_id = rt.id
+                    WHERE rt.name = #{tag}
+                )
+            </if>
+            <!-- 关键词搜索 -->
+            <if test="keyword != null and keyword != ''">
+                AND (r.title LIKE CONCAT('%', #{keyword}, '%') 
+                     OR r.summary LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy == 'oldest'">
+                ORDER BY r.created_at ASC
+            </when>
+            <when test="sortBy == 'views'">
+                ORDER BY r.views DESC, r.created_at DESC
+            </when>
+            <when test="sortBy == 'likes'">
+                ORDER BY r.likes DESC, r.created_at DESC
+            </when>
+            <otherwise>
+                ORDER BY r.created_at DESC
+            </otherwise>
+        </choose>
+    </select>
+    
+    <!-- 根据ID查询记录详情 -->
+    <select id="selectRecordById" resultMap="RecordVOResultMap">
+        SELECT 
+            r.id,
+            r.title,
+            r.summary,
+            r.content,
+            r.cover,
+            r.category_id,
+            p.category_key AS category,
+            c.category_key AS sub_category,
+            c.name AS category_name,
+            p.name AS parent_category_name,
+            r.user_id,
+            u.username AS user_name,
+            r.views,
+            r.likes,
+            r.status,
+            DATE_FORMAT(r.created_at, '%Y-%m-%d') AS date,
+            r.created_at,
+            r.updated_at
+        FROM record r
+        INNER JOIN record_category c ON r.category_id = c.id
+        INNER JOIN record_category p ON c.parent_id = p.id
+        LEFT JOIN user u ON r.user_id = u.id
+        WHERE r.id = #{id}
+    </select>
+    
+</mapper>
+
