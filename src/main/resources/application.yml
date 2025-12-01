@@ -7,17 +7,11 @@ spring:
     url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: 123456
-#    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
-#    username: root
-#    password: 123456
   data:
     redis:
       host: localhost
       port: 6379
       database: 0
-#      host: localhost
-#      port: 6379
-#      database: 0
   mail:
     host: smtp.qq.com
     port: 587
@@ -30,6 +24,10 @@ spring:
           starttls:
             enable: true
             required: true
+  servlet:
+    multipart:
+      max-file-size: ${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE:100MB}
+      max-request-size: ${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE:100MB}
 
 mybatis-plus:
   configuration:
@@ -48,9 +46,3 @@ jwt:
 # 文件上传配置
 file:
   upload-path: E:/blog/blog-code/uploads/
-
-spring:
-  servlet:
-    multipart:
-      max-file-size: ${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE:100MB}
-      max-request-size: ${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE:100MB}
