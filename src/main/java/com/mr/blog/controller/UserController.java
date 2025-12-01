@@ -33,7 +33,7 @@ public class UserController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    @Value("${file.upload-path:uploads/}")
+    @Value("${FILE_UPLOAD_PATH:${file.upload-path:uploads/}}")
     private String uploadPath;
 
     /**

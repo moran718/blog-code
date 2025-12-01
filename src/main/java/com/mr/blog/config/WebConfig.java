@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${file.upload-path:E:/blog/blog-code/uploads/}")
+    @Value("${FILE_UPLOAD_PATH:${file.upload-path:E:/blog/blog-code/uploads/}}")
     private String uploadPath;
 
     @Value("${CORS_ALLOWED_ORIGINS:${cors.allowed-origins:http://localhost:8887,http://localhost:8888}}")

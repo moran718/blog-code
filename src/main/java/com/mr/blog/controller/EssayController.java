@@ -29,7 +29,7 @@ public class EssayController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    @org.springframework.beans.factory.annotation.Value("${file.upload-path}")
+    @org.springframework.beans.factory.annotation.Value("${FILE_UPLOAD_PATH:${file.upload-path:uploads/}}")
     private String uploadPath;
 
     /**

@@ -27,7 +27,7 @@ public class MusicController {
     @Autowired
     private MusicService musicService;
 
-    @Value("${file.upload-path}")
+    @Value("${FILE_UPLOAD_PATH:${file.upload-path:uploads/}}")
     private String uploadPath;
 
     /**
