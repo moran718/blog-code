@@ -310,6 +310,53 @@ public class RecordController {
     }
 
     /**
+     * 上传文章内容图片
+     */
+    @PostMapping("/uploadImage")
+    public Result<String> uploadImage(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return Result.error("文件不能为空");
+        }
+
+        // 验证文件类型
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return Result.error("只能上传图片文件");
+        }
+
+        // 验证文件大小（最大5MB）
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return Result.error("图片大小不能超过5MB");
+        }
+
+        try {
+            // 生成文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String newFilename = UUID.randomUUID().toString() + extension;
+
+            // 保存文件
+            String imagePath = uploadPath + "records/images/";
+            File dir = new File(imagePath);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            File destFile = new File(imagePath + newFilename);
+            file.transferTo(destFile);
+
+            // 返回相对路径
+            String imageUrl = "/uploads/records/images/" + newFilename;
+            return Result.success(imageUrl);
+        } catch (IOException e) {
+            return Result.error("上传失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 从Token中获取用户ID
      */
     private Long getUserIdFromToken(HttpServletRequest request) {
