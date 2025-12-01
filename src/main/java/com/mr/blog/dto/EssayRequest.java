@@ -11,5 +11,5 @@ import java.util.List;
 public class EssayRequest {
     private String content;
     private List<String> images;
+    private List<String> videos;
 }
-

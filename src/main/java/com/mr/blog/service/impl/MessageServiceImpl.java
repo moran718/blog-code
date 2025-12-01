@@ -2,15 +2,18 @@ package com.mr.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mr.blog.dto.AdminMessageVO;
 import com.mr.blog.dto.DanmakuVO;
 import com.mr.blog.dto.MessageRequest;
 import com.mr.blog.dto.MessageReplyRequest;
 import com.mr.blog.dto.MessageVO;
 import com.mr.blog.dto.PageVO;
+import com.mr.blog.entity.Level;
 import com.mr.blog.entity.Message;
 import com.mr.blog.entity.MessageLike;
 import com.mr.blog.entity.MessageReply;
 import com.mr.blog.entity.User;
+import com.mr.blog.mapper.LevelMapper;
 import com.mr.blog.mapper.MessageLikeMapper;
 import com.mr.blog.mapper.MessageMapper;
 import com.mr.blog.mapper.MessageReplyMapper;
@@ -20,7 +23,9 @@ import com.mr.blog.utils.PageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -42,6 +47,21 @@ public class MessageServiceImpl implements MessageService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private LevelMapper levelMapper;
+
+    // 缓存等级配置
+    private Map<Integer, Level> levelMap;
+
+    @PostConstruct
+    public void init() {
+        List<Level> levels = levelMapper.selectList(null);
+        levelMap = new HashMap<>();
+        for (Level level : levels) {
+            levelMap.put(level.getId(), level);
+        }
+    }
 
     @Override
     public List<DanmakuVO> getDanmakuList(Long userId) {
@@ -340,9 +360,28 @@ public class MessageServiceImpl implements MessageService {
         vo.setId(user.getId());
         vo.setName(user.getUsername());
         vo.setAvatar(user.getAvatar());
-        vo.setLevel(user.getLevel());
-        vo.setTitle(user.getTitle());
+        int levelId = user.getLevelId() != null ? user.getLevelId() : 1;
+        vo.setLevel(levelId);
+        fillLevelInfo(vo, levelId);
         return vo;
+    }
+
+    /**
+     * 填充等级信息（包括称号title，从level表获取）
+     */
+    private void fillLevelInfo(MessageVO.UserVO vo, int levelId) {
+        if (levelMap != null && levelMap.containsKey(levelId)) {
+            Level level = levelMap.get(levelId);
+            vo.setLevelName(level.getName());
+            vo.setLevelIcon(level.getIcon());
+            vo.setLevelColor(level.getColor());
+            vo.setTitle(level.getName());
+        } else {
+            vo.setLevelName("初来乍到");
+            vo.setLevelIcon("🌱");
+            vo.setLevelColor("#9e9e9e");
+            vo.setTitle("初来乍到");
+        }
     }
 
     private List<String> parseImages(String images) {
@@ -357,5 +396,104 @@ public class MessageServiceImpl implements MessageService {
             return null;
         }
         return String.join(",", images);
+    }
+
+    // ==================== 管理端方法实现 ====================
+
+    @Override
+    public PageVO<AdminMessageVO> getAdminMessageList(int page, int size, String keyword, Integer type) {
+        // 构建查询条件
+        LambdaQueryWrapper<Message> wrapper = new LambdaQueryWrapper<>();
+        if (type != null) {
+            wrapper.eq(Message::getType, type);
+        }
+        if (StringUtils.hasText(keyword)) {
+            wrapper.like(Message::getContent, keyword);
+        }
+        wrapper.orderByDesc(Message::getCreatedAt);
+
+        // 分页查询
+        Page<Message> pageParam = PageUtils.createPage(page, size);
+        Page<Message> messagePage = messageMapper.selectPage(pageParam, wrapper);
+        List<Message> messages = messagePage.getRecords();
+
+        if (messages.isEmpty()) {
+            return PageUtils.toPageVO(messagePage, new ArrayList<>());
+        }
+
+        // 获取用户信息
+        Set<Long> userIds = messages.stream().map(Message::getUserId).collect(Collectors.toSet());
+        List<User> users = userMapper.selectBatchIds(userIds);
+        Map<Long, User> userMap = users.stream().collect(Collectors.toMap(User::getId, u -> u));
+
+        // 获取留言的回复数量
+        List<Long> messageIds = messages.stream().map(Message::getId).collect(Collectors.toList());
+        Map<Long, Long> replyCountMap = new HashMap<>();
+        if (!messageIds.isEmpty()) {
+            LambdaQueryWrapper<MessageReply> replyWrapper = new LambdaQueryWrapper<>();
+            replyWrapper.in(MessageReply::getMessageId, messageIds);
+            List<MessageReply> replies = messageReplyMapper.selectList(replyWrapper);
+            for (MessageReply reply : replies) {
+                replyCountMap.merge(reply.getMessageId(), 1L, Long::sum);
+            }
+        }
+
+        // 转换为VO
+        List<AdminMessageVO> result = new ArrayList<>();
+        for (Message msg : messages) {
+            AdminMessageVO vo = new AdminMessageVO();
+            vo.setId(msg.getId());
+            vo.setUserId(msg.getUserId());
+            vo.setType(msg.getType());
+            vo.setContent(msg.getContent());
+            vo.setImages(msg.getImages());
+            vo.setImageList(parseImagesArray(msg.getImages()));
+            vo.setLikes(msg.getLikes());
+            vo.setReplyCount(replyCountMap.getOrDefault(msg.getId(), 0L).intValue());
+            vo.setCreatedAt(msg.getCreatedAt());
+
+            User user = userMap.get(msg.getUserId());
+            if (user != null) {
+                vo.setUsername(user.getUsername());
+                vo.setAvatar(user.getAvatar());
+            } else {
+                vo.setUsername("未知用户");
+                vo.setAvatar(null);
+            }
+            result.add(vo);
+        }
+
+        return PageUtils.toPageVO(messagePage, result);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMessageByAdmin(Long id) {
+        Message message = messageMapper.selectById(id);
+        if (message == null) {
+            throw new RuntimeException("留言不存在");
+        }
+
+        // 如果是留言类型，删除其所有回复
+        if (message.getType() == 1) {
+            LambdaQueryWrapper<MessageReply> replyWrapper = new LambdaQueryWrapper<>();
+            replyWrapper.eq(MessageReply::getMessageId, id);
+            messageReplyMapper.delete(replyWrapper);
+        }
+
+        // 删除点赞记录
+        LambdaQueryWrapper<MessageLike> likeWrapper = new LambdaQueryWrapper<>();
+        likeWrapper.eq(MessageLike::getMessageId, id);
+        messageLikeMapper.delete(likeWrapper);
+
+        // 删除留言/弹幕
+        messageMapper.deleteById(id);
+    }
+
+    private String[] parseImagesArray(String images) {
+        if (!StringUtils.hasText(images)) {
+            return null;
+        }
+        return images.split(",");
     }
 }

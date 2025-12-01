@@ -36,4 +36,21 @@ public interface EssayService {
      * 获取随笔评论列表（分页）
      */
     PageVO<EssayVO.CommentVO> getEssayComments(Long essayId, int page, int pageSize);
+
+    // ==================== 管理端接口 ====================
+
+    /**
+     * 管理端：获取随笔列表（分页，支持搜索）
+     */
+    PageVO<EssayVO> getAdminEssayList(int page, int size, String keyword);
+
+    /**
+     * 管理端：删除随笔（不检查权限）
+     */
+    void adminDeleteEssay(Long essayId);
+
+    /**
+     * 管理端：删除评论（不检查权限）
+     */
+    void adminDeleteComment(Long commentId);
 }

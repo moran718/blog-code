@@ -11,11 +11,32 @@
  Target Server Version : 80029
  File Encoding         : 65001
 
- Date: 27/11/2025 15:28:14
+ Date: 29/11/2025 11:23:06
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for check_in
+-- ----------------------------
+DROP TABLE IF EXISTS `check_in`;
+CREATE TABLE `check_in`  (
+  `id` bigint(0) NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(0) NOT NULL COMMENT '用户ID',
+  `check_date` date NOT NULL COMMENT '签到日期',
+  `exp_gained` int(0) NOT NULL COMMENT '获得的经验值',
+  `continuous_days` int(0) NOT NULL DEFAULT 1 COMMENT '连续签到天数',
+  `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_user_date`(`user_id`, `check_date`) USING BTREE,
+  INDEX `idx_user_id`(`user_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '签到记录表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of check_in
+-- ----------------------------
+INSERT INTO `check_in` VALUES (1, 1, '2025-11-29', 10, 1, '2025-11-29 11:05:33');
 
 -- ----------------------------
 -- Table structure for essay
@@ -32,15 +53,15 @@ CREATE TABLE `essay`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_created_at`(`created_at`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '随笔表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '随笔表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of essay
 -- ----------------------------
-INSERT INTO `essay` VALUES (1, 2, '🌟送大家一片星空🌟\n\n☀️ ☁️ 🌍 • 🌈 🌙 • ⬛⬛⬛ 🚀 ☆☆ ★\n\n✨ · · · · · ★ · ▁▂▃▄▅▆▇██▇▆▅▄▃▂▁ · ★', NULL, 10, '2025-10-17 10:30:00', '2025-10-17 10:30:00');
-INSERT INTO `essay` VALUES (2, 2, '有点过于无敌了...', 'https://picsum.photos/400/200?random=1', 4, '2025-04-20 15:20:00', '2025-04-20 15:20:00');
-INSERT INTO `essay` VALUES (3, 2, '杀神，回来了。', 'https://picsum.photos/400/250?random=2', 6, '2025-04-13 09:00:00', '2025-04-13 09:00:00');
-INSERT INTO `essay` VALUES (4, 5, '今天学习了Vue3的组合式API，感觉比Vue2的选项式API更加灵活，代码组织也更清晰了！分享给大家～', NULL, 4, '2025-04-10 14:00:00', '2025-04-10 14:00:00');
+INSERT INTO `essay` VALUES (1, 1, '🌟送大家一片星空🌟\n\n☀️ ☁️ 🌍 • 🌈 🌙 • ⬛⬛⬛ 🚀 ☆☆ ★\n\n✨ · · · · · ★ · ▁▂▃▄▅▆▇██▇▆▅▄▃▂▁ · ★', NULL, 6, '2025-10-17 10:30:00', '2025-11-29 11:18:18');
+INSERT INTO `essay` VALUES (2, 1, '有点过于无敌了...', 'https://picsum.photos/400/200?random=1', 4, '2025-04-20 15:20:00', '2025-11-29 11:18:19');
+INSERT INTO `essay` VALUES (3, 1, '杀神，回来了。', 'https://picsum.photos/400/250?random=2', 6, '2025-04-13 09:00:00', '2025-11-29 11:18:19');
+INSERT INTO `essay` VALUES (4, 1, '今天学习了Vue3的组合式API，感觉比Vue2的选项式API更加灵活，代码组织也更清晰了！分享给大家～', NULL, 4, '2025-04-10 14:00:00', '2025-11-29 11:18:20');
 
 -- ----------------------------
 -- Table structure for essay_comment
@@ -59,7 +80,7 @@ CREATE TABLE `essay_comment`  (
   INDEX `idx_essay_id`(`essay_id`) USING BTREE,
   INDEX `idx_parent_id`(`parent_id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '随笔评论表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '随笔评论表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of essay_comment
@@ -70,9 +91,6 @@ INSERT INTO `essay_comment` VALUES (3, 3, 3, 0, NULL, '大佬带带我', NULL, '
 INSERT INTO `essay_comment` VALUES (4, 3, 4, 3, NULL, '带带弟弟', NULL, '2025-05-26 11:00:00');
 INSERT INTO `essay_comment` VALUES (5, 3, 4, 3, 4, '想学习啊', NULL, '2025-05-26 11:05:00');
 INSERT INTO `essay_comment` VALUES (6, 4, 6, 0, NULL, '大佬能出个教程吗？', NULL, '2025-04-11 09:30:00');
-INSERT INTO `essay_comment` VALUES (7, 1, 1, 0, NULL, '123', NULL, '2025-11-26 16:12:26');
-INSERT INTO `essay_comment` VALUES (8, 1, 1, 7, NULL, '111', NULL, '2025-11-26 16:12:38');
-INSERT INTO `essay_comment` VALUES (9, 1, 1, 7, 1, '111', NULL, '2025-11-26 16:14:28');
 INSERT INTO `essay_comment` VALUES (10, 1, 1, 0, NULL, '😂', NULL, '2025-11-26 16:14:45');
 INSERT INTO `essay_comment` VALUES (11, 4, 1, 0, NULL, '1', 'http://localhost:9999/uploads/essays/b184b1a8-a48e-4df1-831f-af4bdb2f7cb8.png', '2025-11-26 16:20:46');
 INSERT INTO `essay_comment` VALUES (12, 2, 1, 0, NULL, NULL, 'http://localhost:9999/uploads/essays/568ab33e-51e0-4707-8dfe-eecd9c0b6f11.jpg', '2025-11-26 16:20:59');
@@ -83,11 +101,33 @@ INSERT INTO `essay_comment` VALUES (16, 3, 1, 0, NULL, '666', NULL, '2025-11-26 
 INSERT INTO `essay_comment` VALUES (17, 4, 1, 0, NULL, 'cs', NULL, '2025-11-26 16:29:20');
 INSERT INTO `essay_comment` VALUES (18, 4, 1, 11, NULL, '123', NULL, '2025-11-26 16:29:27');
 INSERT INTO `essay_comment` VALUES (19, 1, 1, 0, NULL, '1', NULL, '2025-11-26 17:34:03');
-INSERT INTO `essay_comment` VALUES (20, 2, 1, 0, NULL, '1', NULL, '2025-11-26 17:34:07');
 INSERT INTO `essay_comment` VALUES (21, 1, 1, 0, NULL, '1111', NULL, '2025-11-27 10:33:24');
 INSERT INTO `essay_comment` VALUES (22, 1, 1, 0, NULL, '1111', NULL, '2025-11-27 10:33:26');
 INSERT INTO `essay_comment` VALUES (23, 1, 1, 0, NULL, '99987', NULL, '2025-11-27 10:34:13');
-INSERT INTO `essay_comment` VALUES (24, 1, 1, 7, 1, '444', NULL, '2025-11-27 13:50:22');
+INSERT INTO `essay_comment` VALUES (25, 2, 1, 0, NULL, '沙发上打撒发上发啊发', NULL, '2025-11-28 12:20:10');
+
+-- ----------------------------
+-- Table structure for level
+-- ----------------------------
+DROP TABLE IF EXISTS `level`;
+CREATE TABLE `level`  (
+  `id` int(0) NOT NULL COMMENT '等级ID（1-5）',
+  `name` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '等级名称',
+  `min_exp` int(0) NOT NULL COMMENT '该等级最低经验值',
+  `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '等级图标',
+  `color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '等级颜色',
+  `description` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '等级描述',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '等级配置表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of level
+-- ----------------------------
+INSERT INTO `level` VALUES (1, '初来乍到', 0, '🌱', '#9e9e9e', '欢迎来到拾光博客');
+INSERT INTO `level` VALUES (2, '初露锋芒', 100, '🌿', '#4caf50', '开始崭露头角');
+INSERT INTO `level` VALUES (3, '小有名气', 300, '🌳', '#2196f3', '已经小有名气了');
+INSERT INTO `level` VALUES (4, '声名远扬', 600, '🌟', '#ff9800', '名声已经传开');
+INSERT INTO `level` VALUES (5, '登峰造极', 1000, '👑', '#f44336', '已达巅峰');
 
 -- ----------------------------
 -- Table structure for message
@@ -105,7 +145,7 @@ CREATE TABLE `message`  (
   INDEX `idx_type`(`type`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_created_at`(`created_at`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '留言表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 207 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '留言表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of message
@@ -328,7 +368,7 @@ CREATE TABLE `message_like`  (
   `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_message_user`(`message_id`, `user_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '弹幕点赞记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '弹幕点赞记录表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of message_like
@@ -349,7 +389,7 @@ CREATE TABLE `message_reply`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_message_id`(`message_id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '留言回复表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '留言回复表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of message_reply
@@ -400,16 +440,16 @@ CREATE TABLE `record`  (
 -- ----------------------------
 -- Records of record
 -- ----------------------------
-INSERT INTO `record` VALUES (1, 'Vue3 组合式 API 深度解析', '详细介绍 Vue3 Composition API 的使用方法，包括 setup、ref、reactive、computed 等核心概念...', '1. Vue3 组合式 API 深度解析（补充 content 完整内容）\r\nVue3 组合式 API（Composition API）的核心价值在于解决复杂组件的逻辑复用与代码组织问题，相比 Options API 更灵活高效。setup 函数作为入口，在组件创建前执行，返回的属性和方法可直接在模板中使用。ref 用于创建基本类型响应式数据，通过 .value 访问和修改；reactive 则适用于对象 / 数组类型，递归实现响应式代理。computed 可创建依赖响应式数据的计算属性，支持读写模式，缓存计算结果提升性能。此外，watch 用于监听数据变化，支持深度监听和即时执行，watchEffect 则自动追踪依赖，简化监听逻辑。实际开发中，可将通用逻辑（如数据请求、表单校验）抽离为组合式函数（Composables），实现跨组件复用，让代码结构更清晰、维护成本更低。', 'https://picsum.photos/400/200?random=1', 6, NULL, 1298, 157, 1, '2025-11-25 10:00:00', '2025-11-27 14:09:20');
-INSERT INTO `record` VALUES (2, 'Spring Boot 3.0 新特性总结', 'Spring Boot 3.0 带来了许多激动人心的新特性，包括对 Java 17 的原生支持、GraalVM 原生镜像...', '## 引言\r\n\r\nSpring Boot 3.0 是一个里程碑式的版本，带来了众多令人兴奋的新特性和改进。本文将详细介绍这些变化。\r\n\r\n![Spring Boot](https://spring.io/img/projects/spring-boot.svg)\r\n\r\n## 一、Java 17 基线\r\n\r\nSpring Boot 3.0 要求最低 **Java 17**，这意味着我们可以使用许多新特性：\r\n\r\n- **Records** - 简洁的数据类\r\n- **Pattern Matching** - 模式匹配\r\n- **Sealed Classes** - 密封类\r\n- **Text Blocks** - 文本块\r\n\r\n> 💡 **提示**：升级到 Java 17 不仅能使用新特性，还能获得更好的性能和安全性。\r\n\r\n### 1.1 Records 示例\r\n\r\n```java\r\npublic record User(String name, int age, String email) {\r\n    // 自动生成 getter、equals、hashCode、toString\r\n}\r\n\r\n// 使用\r\nUser user = new User(\"张三\", 25, \"zhangsan@example.com\");\r\nSystem.out.println(user.name()); // 张三\r\n1.2 Pattern Matching\r\n二、Jakarta EE 9+\r\n从 javax.* 迁移到 jakarta.* 命名空间，这是最大的破坏性变更：\r\n\r\n旧包名	新包名\r\njavax.servlet	jakarta.servlet\r\njavax.persistence	jakarta.persistence\r\njavax.validation	jakarta.validation\r\njavax.annotation	jakarta.annotation\r\n三、GraalVM 原生镜像支持\r\nSpring Boot 3.0 提供了一流的 GraalVM 原生镜像支持：\r\n\r\n优势对比\r\n指标	JVM 模式	Native 模式\r\n启动时间	~2秒	~0.05秒\r\n内存占用	~200MB	~50MB\r\n打包大小	~20MB	~70MB\r\n⚡ 性能提升：原生镜像启动时间可以从秒级降到毫秒级，非常适合 Serverless 场景！\r\n\r\n四、可观测性增强\r\n新增 Micrometer 和 Micrometer Tracing 支持：\r\n\r\n支持的追踪系统\r\nZipkin\r\nWavefront\r\nOpenTelemetry\r\nJaeger\r\n五、HTTP 接口客户端\r\n声明式 HTTP 客户端，类似 Feign：\r\n\r\n总结\r\nSpring Boot 3.0 是现代 Java 开发的重要升级，主要改进包括：\r\n\r\nJava 17 基线\r\nJakarta EE 9+ 迁移\r\nGraalVM 原生镜像支持\r\n可观测性增强\r\n声明式 HTTP 客户端\r\n建议尽快升级体验新特性！ 🚀\r\n\r\n参考文档：Spring Boot 3.0 Release Notes', 'https://picsum.photos/400/200?random=2', 7, NULL, 900, 98, 1, '2025-11-20 14:30:00', '2025-11-27 14:15:19');
-INSERT INTO `record` VALUES (3, '周末京都赏枫之旅', '趁着深秋时节，来了一场说走就走的京都之旅。清水寺的红叶美得让人窒息，仿佛置身于画中...', NULL, 'https://picsum.photos/400/200?random=3', 18, NULL, 2100, 345, 1, '2025-11-18 09:00:00', '2025-11-27 12:04:11');
-INSERT INTO `record` VALUES (4, '《代码整洁之道》读书笔记', 'Robert C. Martin 的经典著作，教会我们如何写出优雅、可维护的代码。以下是我的读书心得...', NULL, 'https://picsum.photos/400/200?random=4', 15, NULL, 560, 78, 1, '2025-11-15 16:00:00', '2025-11-27 12:04:11');
-INSERT INTO `record` VALUES (5, '自制提拉米苏蛋糕', '第一次尝试在家做提拉米苏，没想到效果出奇的好！分享一下详细的制作步骤和一些小技巧...', NULL, 'https://picsum.photos/400/200?random=5', 23, NULL, 1560, 234, 1, '2025-11-12 11:00:00', '2025-11-27 12:04:11');
-INSERT INTO `record` VALUES (6, '今日份的好心情', '阳光正好，微风不燥。在咖啡馆坐了一下午，看着窗外的人来人往，突然觉得生活也挺美好的...', NULL, NULL, 12, NULL, 420, 89, 1, '2025-11-10 15:00:00', '2025-11-27 12:04:11');
-INSERT INTO `record` VALUES (7, 'MySQL 索引优化实战', '记录一次线上数据库慢查询优化的完整过程，从分析执行计划到创建合适的索引...', NULL, 'https://picsum.photos/400/200?random=7', 8, NULL, 781, 113, 1, '2025-11-08 10:00:00', '2025-11-27 14:28:56');
-INSERT INTO `record` VALUES (8, '上海城市漫步：武康路一日游', '漫步在梧桐树下的武康路，感受老上海的优雅与浪漫。这里的每一栋老洋房都有自己的故事...', NULL, 'https://picsum.photos/400/200?random=8', 19, NULL, 1890, 267, 1, '2025-11-05 09:30:00', '2025-11-27 12:04:11');
-INSERT INTO `record` VALUES (9, 'Docker 容器化部署指南', '从零开始学习 Docker，包括镜像构建、容器管理、Docker Compose 编排等核心内容...', NULL, 'https://picsum.photos/400/200?random=9', 9, NULL, 920, 134, 1, '2025-11-01 14:00:00', '2025-11-27 12:04:11');
-INSERT INTO `record` VALUES (10, '探店：藏在巷子里的宝藏面馆', '朋友推荐的一家老面馆，店面不大但味道绝了！招牌的红烧牛肉面，汤头浓郁，面条劲道...', NULL, 'https://picsum.photos/400/200?random=10', 21, NULL, 2340, 389, 1, '2025-10-28 12:00:00', '2025-11-27 12:04:11');
+INSERT INTO `record` VALUES (1, 'Vue3 组合式 API 深度解析', '详细介绍 Vue3 Composition API 的使用方法，包括 setup、ref、reactive、computed 等核心概念...', '# \n\n## 1、Java多态，子类父类中类的加载顺序\n\n(1) 父类静态代码块(包括静态初始化块，静态属性，但不包括静态方法) \n\n(2) 子类静态代码块(包括静态初始化块，静态属性，但不包括静态方法  )\n\n(3) 父类非静态代码块(  包括非静态初始化块，非静态属性  )\n\n(4) 父类构造函数\n\n(5) 子类非静态代码块  (  包括非静态初始化块，非静态属性  )\n\n(6) 子类构造函数\n\n例：下面代码的输出是什么？\n\n```java\n public class Base\n    {\n        private String baseName = \"base\";\n        public Base()\n        {\n            callName();\n        }\n\n        public void callName()\n        {\n            System. out. println(baseName);\n        }\n\n        static class Sub extends Base\n        {\n            private String baseName = \"sub\";\n            public void callName()\n            {\n                System. out. println (baseName) ;\n            }\n        }\n        public static void main(String[] args)\n        {\n            Base b = new Sub();\n        }\n    }\n```\n\n答案：null\n\n## 2、JVM操作指令\n\n- **jinfo**：查看或修改JVM运行时参数（如系统属性、启动参数），不涉及内存映像。\n- **jhat**：分析已生成的堆转储文件（如.hprof），提供HTTP服务展示内存分析结果，但本身不生成内存映像。\n- **jstat**：监控JVM运行时统计信息（如GC次数、堆内存使用率），仅提供动态数据，不生成完整内存映像。\n- **jmap**：生成JVM堆转储快照（heap dump），并提供堆内存的详细信息，包括对象分布、内存使用率、垃圾收集器配置等。**适用场景**：分析内存泄漏、查看对象内存占用、诊断内存溢出问题。\n\n## 3、Map\n\nHashMap，是map的默认实现类，每个元素由 `key` 和 `value` 组成，`key` 唯一（不可重复），`value` 可重复。是无序的。允许 1 个 `null` 键和多个 `null` 值。\n\nLinkedHashMap，可保证插入 / 访问顺序。不允许 `null` 键和 `null` 值。\n\nTreeMap，有序，不允许 `null` 键（会抛 `NullPointerException`），但允许 `null` 值。\n\nHashtable，允许 `null` 键和 `null` 值。\n\n|      实现类       |        底层结构         |                           特点                           | 线程安全 |\n| :---------------: | :---------------------: | :------------------------------------------------------: | :------: |\n|      HashMap      |    数组+链表+红黑树     | 查找效率高（平均O（1）），无序，jdk1.8优化了哈希冲突处理 |    否    |\n|   LinkedHashMap   |     哈希表+双向链表     |   继承HashMap，保留插入顺序或访问顺序（可用于LRU缓存）   |    否    |\n|      TreeMap      |         红黑树          |   键按自然顺序或自定义比较器排序，查找/插入O（log n）    |    否    |\n|     Hashtable     |        数组+链表        |            古老实现，性能较差，不允许null键值            | 是(低效) |\n| ConcurrentHashMap | 分段锁 / CAS（JDK 1.8） |            线程安全，高效并发，支持多线程操作            |    是    |\n\n## 4、“先进先出”的容器是\n\n**例：“先进先出”的容器是：( )**\n\n**A、堆栈(Stack)**\n\n**B、队列（Queue）**\n\n**C、字符串(String)**\n\n**D、迭代器(Iterator)**\n\n堆栈(Stack)错误：堆栈是\"后进先出\"（LIFO）的数据结构，最后压入栈的元素会最先被弹出，这与\"先进先出\"的特性相反。\n\n字符串(String)错误：字符串是用于存储字符序列的数据类型，它并不具有\"先进先出\"的特性。字符串的访问可以是随机的，不遵循任何进出顺序。\n\n 迭代器(Iterator)错误：迭代器是一种用于遍历集合的工具，它提供了按特定顺序访问集合元素的方法，但本身并不是一个存储容器，也不具备\"先进先出\"的特性。\n\n\"先进先出\"是队列（Queue）这种数据结构的核心特征，所以B是正确答案。队列的工作原理是：第一个进入队列的元素会第一个被处理和移出，就像排队买票一样，先到的人先买票离开。\n\n## 5、Java与C++对比\n\nJava完全取消了指针的概念,这是Java相对C++的一个重要区别。Java中的引用可以理解为受限的指针,但它不允许直接进行指针运算和操作。\n\nJava的垃圾回收机制(Garbage Collection)是自动进行的,不是程序结束时才回收。当JVM发现某些对象不再被引用时,就会将其标记并在合适的时机进行回收,这个过程是动态的、持续的。\n\nJava和C++都有三个特征：封装、继承和多态。\n\n## 6、i++与++i\n\n**i++执行逻辑：**先使用变量 `i` 当前的值参与表达式运算，然后再将 `i` 的值加 1。\n\n**++i执行逻辑：**先将变量 `i` 的值加 1，然后再使用更新后的值参与表达式运算。\n\n例：下方代码的输出结果是： 			结束是：0\n\n```java\npackage algorithms.com.guan.javajicu;\npublic class Inc { \n  public static void main(String[] args) { \n    Inc inc = new Inc(); \n    int i = 0; \n    inc.fermin(i); \n    i= i ++; \n    System.out.println(i);\n  \n  } \n  void fermin(int i){ \n    i++; \n  }\n}\n```\n\n## 7、Java面向对象\n\nJava是纯面向对象语言，所有代码必须定义在类中，不存在独立的“过程”或“函数”。\n\n方法必须隶属于类或对象，不能单独存在。\n\n非静态方法属于实例成员（对象），而静态方法才属于类成员。\n\n虽然Java方法必须属于类或对象，但调用方式与C/C++不同：\n\n​	Java需通过类名（静态方法）或对象（实例方法）调用。\n\n​	C/C++允许独立调用函数或过程。\n\n## 8、\n\n\n\n', 'https://picsum.photos/400/200?random=1', 6, 1, 1317, 157, 1, '2025-11-25 10:00:00', '2025-11-28 16:56:40');
+INSERT INTO `record` VALUES (2, 'Spring Boot 3.0 新特性总结', 'Spring Boot 3.0 带来了许多激动人心的新特性，包括对 Java 17 的原生支持、GraalVM 原生镜像...', '## 引言\r\n\r\nSpring Boot 3.0 是一个里程碑式的版本，带来了众多令人兴奋的新特性和改进。本文将详细介绍这些变化。\r\n\r\n![Spring Boot](https://spring.io/img/projects/spring-boot.svg)\r\n\r\n## 一、Java 17 基线\r\n\r\nSpring Boot 3.0 要求最低 **Java 17**，这意味着我们可以使用许多新特性：\r\n\r\n- **Records** - 简洁的数据类\r\n- **Pattern Matching** - 模式匹配\r\n- **Sealed Classes** - 密封类\r\n- **Text Blocks** - 文本块\r\n\r\n> 💡 **提示**：升级到 Java 17 不仅能使用新特性，还能获得更好的性能和安全性。\r\n\r\n### 1.1 Records 示例\r\n\r\n```java\r\npublic record User(String name, int age, String email) {\r\n    // 自动生成 getter、equals、hashCode、toString\r\n}\r\n\r\n// 使用\r\nUser user = new User(\"张三\", 25, \"zhangsan@example.com\");\r\nSystem.out.println(user.name()); // 张三\r\n1.2 Pattern Matching\r\n二、Jakarta EE 9+\r\n从 javax.* 迁移到 jakarta.* 命名空间，这是最大的破坏性变更：\r\n\r\n旧包名	新包名\r\njavax.servlet	jakarta.servlet\r\njavax.persistence	jakarta.persistence\r\njavax.validation	jakarta.validation\r\njavax.annotation	jakarta.annotation\r\n三、GraalVM 原生镜像支持\r\nSpring Boot 3.0 提供了一流的 GraalVM 原生镜像支持：\r\n\r\n优势对比\r\n指标	JVM 模式	Native 模式\r\n启动时间	~2秒	~0.05秒\r\n内存占用	~200MB	~50MB\r\n打包大小	~20MB	~70MB\r\n⚡ 性能提升：原生镜像启动时间可以从秒级降到毫秒级，非常适合 Serverless 场景！\r\n\r\n四、可观测性增强\r\n新增 Micrometer 和 Micrometer Tracing 支持：\r\n\r\n支持的追踪系统\r\nZipkin\r\nWavefront\r\nOpenTelemetry\r\nJaeger\r\n五、HTTP 接口客户端\r\n声明式 HTTP 客户端，类似 Feign：\r\n\r\n总结\r\nSpring Boot 3.0 是现代 Java 开发的重要升级，主要改进包括：\r\n\r\nJava 17 基线\r\nJakarta EE 9+ 迁移\r\nGraalVM 原生镜像支持\r\n可观测性增强\r\n声明式 HTTP 客户端\r\n建议尽快升级体验新特性！ 🚀\r\n\r\n参考文档：Spring Boot 3.0 Release Notes', 'https://picsum.photos/400/200?random=2', 7, 1, 929, 99, 1, '2025-11-20 14:30:00', '2025-11-28 15:17:28');
+INSERT INTO `record` VALUES (3, '周末京都赏枫之旅', '趁着深秋时节，来了一场说走就走的京都之旅。清水寺的红叶美得让人窒息，仿佛置身于画中...', NULL, 'https://picsum.photos/400/200?random=3', 18, 1, 2102, 345, 1, '2025-11-18 09:00:00', '2025-11-28 15:09:30');
+INSERT INTO `record` VALUES (4, '《代码整洁之道》读书笔记', 'Robert C. Martin 的经典著作，教会我们如何写出优雅、可维护的代码。以下是我的读书心得...', NULL, 'https://picsum.photos/400/200?random=4', 15, 1, 562, 78, 1, '2025-11-15 16:00:00', '2025-11-29 11:18:04');
+INSERT INTO `record` VALUES (5, '自制提拉米苏蛋糕', '第一次尝试在家做提拉米苏，没想到效果出奇的好！分享一下详细的制作步骤和一些小技巧...', NULL, 'https://picsum.photos/400/200?random=5', 23, 1, 1560, 234, 1, '2025-11-12 11:00:00', '2025-11-28 15:09:30');
+INSERT INTO `record` VALUES (6, '今日份的好心情', '阳光正好，微风不燥。在咖啡馆坐了一下午，看着窗外的人来人往，突然觉得生活也挺美好的...', NULL, NULL, 12, 1, 421, 89, 1, '2025-11-10 15:00:00', '2025-11-28 15:18:08');
+INSERT INTO `record` VALUES (7, 'MySQL 索引优化实战', '记录一次线上数据库慢查询优化的完整过程，从分析执行计划到创建合适的索引...', NULL, 'https://picsum.photos/400/200?random=7', 8, 1, 781, 113, 1, '2025-11-08 10:00:00', '2025-11-28 15:09:30');
+INSERT INTO `record` VALUES (8, '上海城市漫步：武康路一日游', '漫步在梧桐树下的武康路，感受老上海的优雅与浪漫。这里的每一栋老洋房都有自己的故事...', NULL, 'https://picsum.photos/400/200?random=8', 19, 1, 1890, 267, 1, '2025-11-05 09:30:00', '2025-11-28 15:09:30');
+INSERT INTO `record` VALUES (9, 'Docker 容器化部署指南', '从零开始学习 Docker，包括镜像构建、容器管理、Docker Compose 编排等核心内容...', NULL, 'https://picsum.photos/400/200?random=9', 9, 1, 920, 134, 1, '2025-11-01 14:00:00', '2025-11-28 15:09:30');
+INSERT INTO `record` VALUES (10, '探店：藏在巷子里的宝藏面馆', '朋友推荐的一家老面馆，店面不大但味道绝了！招牌的红烧牛肉面，汤头浓郁，面条劲道...', NULL, 'https://picsum.photos/400/200?random=10', 21, 1, 2340, 389, 1, '2025-10-28 12:00:00', '2025-11-28 15:09:30');
 
 -- ----------------------------
 -- Table structure for record_category
@@ -469,13 +509,14 @@ CREATE TABLE `record_like`  (
   UNIQUE INDEX `uk_record_user`(`record_id`, `user_id`) USING BTREE,
   UNIQUE INDEX `uk_record_ip`(`record_id`, `ip_address`) USING BTREE,
   INDEX `idx_record_id`(`record_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录点赞表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录点赞表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of record_like
 -- ----------------------------
-INSERT INTO `record_like` VALUES (1, 1, NULL, '0:0:0:0:0:0:0:1', NULL);
 INSERT INTO `record_like` VALUES (2, 7, NULL, '0:0:0:0:0:0:0:1', NULL);
+INSERT INTO `record_like` VALUES (4, 1, NULL, '0:0:0:0:0:0:0:1', NULL);
+INSERT INTO `record_like` VALUES (6, 2, NULL, '0:0:0:0:0:0:0:1', NULL);
 
 -- ----------------------------
 -- Table structure for record_tag
@@ -486,6 +527,7 @@ CREATE TABLE `record_tag`  (
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '标签名称',
   `use_count` int(0) NULL DEFAULT 0 COMMENT '使用次数（热门排序用）',
   `created_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
+  `color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '#409EFF',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `name`(`name`) USING BTREE,
   INDEX `idx_use_count`(`use_count`) USING BTREE
@@ -494,18 +536,18 @@ CREATE TABLE `record_tag`  (
 -- ----------------------------
 -- Records of record_tag
 -- ----------------------------
-INSERT INTO `record_tag` VALUES (1, 'Vue', 10, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (2, 'Spring Boot', 8, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (3, 'MySQL', 6, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (4, '旅行攻略', 5, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (5, '读书笔记', 5, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (6, '美食探店', 7, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (7, 'Docker', 4, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (8, '生活随想', 3, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (9, 'JavaScript', 6, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (10, 'Java', 5, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (11, '前端', 8, '2025-11-27 12:04:11');
-INSERT INTO `record_tag` VALUES (12, '后端', 6, '2025-11-27 12:19:11');
+INSERT INTO `record_tag` VALUES (1, 'Vue', 12, '2025-11-27 12:04:11', '#E6A23C');
+INSERT INTO `record_tag` VALUES (2, 'Spring Boot', 8, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (3, 'MySQL', 6, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (4, '旅行攻略', 5, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (5, '读书笔记', 5, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (6, '美食探店', 7, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (7, 'Docker', 4, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (8, '生活随想', 3, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (9, 'JavaScript', 8, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (10, 'Java', 5, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (11, '前端', 9, '2025-11-27 12:04:11', '#409EFF');
+INSERT INTO `record_tag` VALUES (12, '后端', 6, '2025-11-27 12:19:11', '#409EFF');
 
 -- ----------------------------
 -- Table structure for record_tag_relation
@@ -524,9 +566,8 @@ CREATE TABLE `record_tag_relation`  (
 -- ----------------------------
 -- Records of record_tag_relation
 -- ----------------------------
-INSERT INTO `record_tag_relation` VALUES (1, 1, 1);
-INSERT INTO `record_tag_relation` VALUES (2, 1, 9);
-INSERT INTO `record_tag_relation` VALUES (3, 1, 11);
+INSERT INTO `record_tag_relation` VALUES (18, 1, 1);
+INSERT INTO `record_tag_relation` VALUES (19, 1, 9);
 INSERT INTO `record_tag_relation` VALUES (4, 2, 2);
 INSERT INTO `record_tag_relation` VALUES (5, 2, 10);
 INSERT INTO `record_tag_relation` VALUES (6, 2, 12);
@@ -554,22 +595,24 @@ CREATE TABLE `user`  (
   `create_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '创建时间',
   `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '更新时间',
   `level` int(0) NULL DEFAULT 1 COMMENT '用户等级 1-5',
+  `exp` int(0) NULL DEFAULT 0 COMMENT '经验值',
   `title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT '新人' COMMENT '用户称号',
+  `role` tinyint(0) NOT NULL DEFAULT 0 COMMENT '角色：0-普通用户，1-管理员',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_username`(`username`) USING BTREE,
   UNIQUE INDEX `uk_email`(`email`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of user
 -- ----------------------------
-INSERT INTO `user` VALUES (1, '墨染', '3095882640@qq.com', '4b4baedff8691e5b9a01275beab4de0e', 1, 'http://localhost:9999/uploads/avatars/5715695f-4d1e-4ccb-be2d-722f62eae8e9.jpg', '介绍测试', '2025-11-26 14:54:01', '2025-11-26 16:08:14', 5, '太乙玉仙');
-INSERT INTO `user` VALUES (2, 'Sara', 'sara@test.com', 'e10adc3949ba59abbe56e057f20f883e', 0, 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sara', '热爱生活', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 5, '太乙玉仙');
-INSERT INTO `user` VALUES (3, '江硕', 'jiangshuo@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=jiangshuo', '前端开发者', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 4, '金仙');
-INSERT INTO `user` VALUES (4, '经年未远', 'jingnianyuan@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=jingnianyuan', '学习中', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 1, '大乘');
-INSERT INTO `user` VALUES (5, '代码小王子', 'coder@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=coder', 'Vue开发者', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 3, '渡劫');
-INSERT INTO `user` VALUES (6, '前端小白', 'xiaobai@test.com', 'e10adc3949ba59abbe56e057f20f883e', 0, 'https://api.dicebear.com/7.x/avataaars/svg?seed=xiaobai', '正在学习前端', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 1, '练气');
-INSERT INTO `user` VALUES (7, 'ex', 'ex@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=ex', '路人甲', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 1, '大乘');
-INSERT INTO `user` VALUES (8, '用户582039', '19839433499@163.com', 'e517bb455e88ffaa1a1dc47a8bad3b35', 0, 'https://api.dicebear.com/7.x/avataaars/svg?seed=用户582039', '', '2025-11-27 14:23:02', '2025-11-27 14:23:02', 1, '新人');
+INSERT INTO `user` VALUES (1, 'Dawn', '3095882640@qq.com', '4b4baedff8691e5b9a01275beab4de0e', 1, 'http://localhost:9999/uploads/avatars/5715695f-4d1e-4ccb-be2d-722f62eae8e9.jpg', '时光不语，却回答了所有问题', '2025-11-26 14:54:01', '2025-11-29 11:05:33', 1, 10, '太乙玉仙', 1);
+INSERT INTO `user` VALUES (2, 'Sara', 'sara@test.com', 'e10adc3949ba59abbe56e057f20f883e', 0, 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sara', '热爱生活', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 5, 0, '太乙玉仙', 0);
+INSERT INTO `user` VALUES (3, '江硕', 'jiangshuo@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=jiangshuo', '前端开发者', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 4, 0, '金仙', 0);
+INSERT INTO `user` VALUES (4, '经年未远', 'jingnianyuan@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=jingnianyuan', '学习中', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 1, 0, '大乘', 0);
+INSERT INTO `user` VALUES (5, '代码小王子', 'coder@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=coder', 'Vue开发者', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 3, 0, '渡劫', 0);
+INSERT INTO `user` VALUES (6, '前端小白', 'xiaobai@test.com', 'e10adc3949ba59abbe56e057f20f883e', 0, 'https://api.dicebear.com/7.x/avataaars/svg?seed=xiaobai', '正在学习前端', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 1, 0, '练气', 0);
+INSERT INTO `user` VALUES (7, 'ex', 'ex@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=ex', '路人甲', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 1, 0, '大乘', 0);
+INSERT INTO `user` VALUES (8, '用户582039', '19839433499@163.com', 'e517bb455e88ffaa1a1dc47a8bad3b35', 0, 'https://api.dicebear.com/7.x/avataaars/svg?seed=用户582039', '', '2025-11-27 14:23:02', '2025-11-27 14:23:02', 1, 0, '新人', 0);
 
 SET FOREIGN_KEY_CHECKS = 1;

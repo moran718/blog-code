@@ -90,7 +90,7 @@
     
     <!-- 根据ID查询记录详情 -->
     <select id="selectRecordById" resultMap="RecordVOResultMap">
-        SELECT 
+        SELECT
             r.id,
             r.title,
             r.summary,
@@ -115,6 +115,64 @@
         LEFT JOIN user u ON r.user_id = u.id
         WHERE r.id = #{id}
     </select>
-    
+
+    <!-- 查询最新记录 -->
+    <select id="selectLatestRecords" resultMap="RecordVOResultMap">
+        SELECT
+            r.id,
+            r.title,
+            r.summary,
+            r.cover,
+            r.category_id,
+            p.category_key AS category,
+            c.category_key AS sub_category,
+            c.name AS category_name,
+            p.name AS parent_category_name,
+            r.user_id,
+            u.username AS user_name,
+            r.views,
+            r.likes,
+            r.status,
+            DATE_FORMAT(r.created_at, '%Y-%m-%d') AS date,
+            r.created_at,
+            r.updated_at
+        FROM record r
+        INNER JOIN record_category c ON r.category_id = c.id
+        INNER JOIN record_category p ON c.parent_id = p.id
+        LEFT JOIN user u ON r.user_id = u.id
+        WHERE r.status = 1
+        ORDER BY r.created_at DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 查询热门记录（按浏览量排序） -->
+    <select id="selectHotRecords" resultMap="RecordVOResultMap">
+        SELECT
+            r.id,
+            r.title,
+            r.summary,
+            r.cover,
+            r.category_id,
+            p.category_key AS category,
+            c.category_key AS sub_category,
+            c.name AS category_name,
+            p.name AS parent_category_name,
+            r.user_id,
+            u.username AS user_name,
+            r.views,
+            r.likes,
+            r.status,
+            DATE_FORMAT(r.created_at, '%Y-%m-%d') AS date,
+            r.created_at,
+            r.updated_at
+        FROM record r
+        INNER JOIN record_category c ON r.category_id = c.id
+        INNER JOIN record_category p ON c.parent_id = p.id
+        LEFT JOIN user u ON r.user_id = u.id
+        WHERE r.status = 1
+        ORDER BY r.views DESC, r.created_at DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>
 

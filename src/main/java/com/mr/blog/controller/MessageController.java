@@ -1,12 +1,15 @@
 package com.mr.blog.controller;
 
 import com.mr.blog.common.Result;
+import com.mr.blog.dto.AdminMessageVO;
 import com.mr.blog.dto.DanmakuVO;
 import com.mr.blog.dto.MessageRequest;
 import com.mr.blog.dto.MessageReplyRequest;
 import com.mr.blog.dto.MessageVO;
 import com.mr.blog.dto.PageVO;
+import com.mr.blog.entity.User;
 import com.mr.blog.service.MessageService;
+import com.mr.blog.service.UserService;
 import com.mr.blog.utils.JwtUtils;
 import com.mr.blog.utils.PageUtils;
 import jakarta.servlet.http.Cookie;
@@ -19,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/message")
-@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
+@CrossOrigin
 public class MessageController {
 
     @Autowired
@@ -140,6 +143,49 @@ public class MessageController {
         return Result.success(vo);
     }
 
+    // ==================== 管理端接口 ====================
+
+    @Autowired
+    private UserService userService;
+
+    /**
+     * 获取留言/弹幕列表（管理端）
+     */
+    @GetMapping("/admin/list")
+    public Result<PageVO<AdminMessageVO>> getAdminMessageList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer type,
+            HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return Result.error(403, "无权限访问");
+        }
+
+        int[] params = PageUtils.validateParams(page, size);
+        PageVO<AdminMessageVO> result = messageService.getAdminMessageList(params[0], params[1], keyword, type);
+        return Result.success(result);
+    }
+
+    /**
+     * 删除留言/弹幕（管理端）
+     */
+    @DeleteMapping("/admin/delete")
+    public Result<String> deleteMessage(
+            @RequestParam Long id,
+            HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return Result.error(403, "无权限访问");
+        }
+
+        try {
+            messageService.deleteMessageByAdmin(id);
+            return Result.success("删除成功");
+        } catch (Exception e) {
+            return Result.error("删除失败: " + e.getMessage());
+        }
+    }
+
     private Long getUserIdFromRequest(HttpServletRequest request) {
         String token = null;
         Cookie[] cookies = request.getCookies();
@@ -155,5 +201,14 @@ public class MessageController {
             return jwtUtils.getUserIdFromToken(token);
         }
         return null;
+    }
+
+    private boolean isAdmin(HttpServletRequest request) {
+        Long userId = getUserIdFromRequest(request);
+        if (userId == null) {
+            return false;
+        }
+        User user = userService.getById(userId);
+        return user != null && user.getRole() == 1;
     }
 }

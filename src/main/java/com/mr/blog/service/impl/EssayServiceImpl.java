@@ -8,9 +8,11 @@ import com.mr.blog.dto.EssayVO;
 import com.mr.blog.dto.PageVO;
 import com.mr.blog.entity.Essay;
 import com.mr.blog.entity.EssayComment;
+import com.mr.blog.entity.Level;
 import com.mr.blog.entity.User;
 import com.mr.blog.mapper.EssayCommentMapper;
 import com.mr.blog.mapper.EssayMapper;
+import com.mr.blog.mapper.LevelMapper;
 import com.mr.blog.mapper.UserMapper;
 import com.mr.blog.service.EssayService;
 import com.mr.blog.utils.PageUtils;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -35,7 +38,23 @@ public class EssayServiceImpl implements EssayService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private LevelMapper levelMapper;
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    // 缓存等级配置
+    private Map<Integer, Level> levelMap;
+
+    @PostConstruct
+    public void init() {
+        // 启动时加载等级配置
+        List<Level> levels = levelMapper.selectList(null);
+        levelMap = new HashMap<>();
+        for (Level level : levels) {
+            levelMap.put(level.getId(), level);
+        }
+    }
 
     @Override
     public PageVO<EssayVO> getEssayListWithPage(int page, int size) {
@@ -82,6 +101,7 @@ public class EssayServiceImpl implements EssayService {
             vo.setId(essay.getId());
             vo.setContent(essay.getContent());
             vo.setImages(parseImages(essay.getImages()));
+            vo.setVideos(parseImages(essay.getVideos()));
             vo.setComments(essay.getCommentsCount() != null ? essay.getCommentsCount() : 0);
             vo.setDate(essay.getCreatedAt().format(DATE_FORMATTER));
             vo.setUser(buildUserVO(userMap.get(essay.getUserId())));
@@ -145,6 +165,7 @@ public class EssayServiceImpl implements EssayService {
         essay.setUserId(userId);
         essay.setContent(request.getContent());
         essay.setImages(joinImages(request.getImages()));
+        essay.setVideos(joinImages(request.getVideos())); // 复用 joinImages 方法处理视频列表
         essay.setCommentsCount(0);
         essay.setCreatedAt(LocalDateTime.now());
         essay.setUpdatedAt(LocalDateTime.now());
@@ -240,7 +261,7 @@ public class EssayServiceImpl implements EssayService {
             vo.setName("未知用户");
             vo.setAvatar("https://api.dicebear.com/7.x/avataaars/svg?seed=unknown");
             vo.setLevel(1);
-            vo.setTitle("新人");
+            fillLevelInfo(vo, 1);
             return vo;
         }
         EssayVO.UserVO vo = new EssayVO.UserVO();
@@ -248,9 +269,29 @@ public class EssayServiceImpl implements EssayService {
         vo.setName(user.getUsername());
         vo.setAvatar(user.getAvatar() != null ? user.getAvatar()
                 : "https://api.dicebear.com/7.x/avataaars/svg?seed=" + user.getId());
-        vo.setLevel(user.getLevel() != null ? user.getLevel() : 1);
-        vo.setTitle(user.getTitle() != null ? user.getTitle() : "新人");
+        int levelId = user.getLevelId() != null ? user.getLevelId() : 1;
+        vo.setLevel(levelId);
+        fillLevelInfo(vo, levelId);
         return vo;
+    }
+
+    /**
+     * 填充等级信息（包括称号title，从level表获取）
+     */
+    private void fillLevelInfo(EssayVO.UserVO vo, int levelId) {
+        if (levelMap != null && levelMap.containsKey(levelId)) {
+            Level level = levelMap.get(levelId);
+            vo.setLevelName(level.getName());
+            vo.setLevelIcon(level.getIcon());
+            vo.setLevelColor(level.getColor());
+            vo.setTitle(level.getName()); // 称号直接使用等级名称
+        } else {
+            // 默认值
+            vo.setLevelName("初来乍到");
+            vo.setLevelIcon("🌱");
+            vo.setLevelColor("#9e9e9e");
+            vo.setTitle("初来乍到");
+        }
     }
 
     private List<String> parseImages(String images) {
@@ -265,6 +306,96 @@ public class EssayServiceImpl implements EssayService {
             return null;
         }
         return String.join(",", images);
+    }
+
+    // ==================== 管理端接口实现 ====================
+
+    @Override
+    public PageVO<EssayVO> getAdminEssayList(int page, int size, String keyword) {
+        // 1. 分页查询随笔
+        Page<Essay> pageParam = PageUtils.createPage(page, size);
+        LambdaQueryWrapper<Essay> wrapper = new LambdaQueryWrapper<>();
+
+        // 关键词搜索
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            wrapper.like(Essay::getContent, keyword.trim());
+        }
+
+        wrapper.orderByDesc(Essay::getCreatedAt);
+        Page<Essay> essayPage = essayMapper.selectPage(pageParam, wrapper);
+        List<Essay> essays = essayPage.getRecords();
+
+        if (essays.isEmpty()) {
+            return PageUtils.toPageVO(essayPage, new ArrayList<>());
+        }
+
+        // 2. 获取所有相关用户
+        Set<Long> userIds = new HashSet<>();
+        essays.forEach(e -> userIds.add(e.getUserId()));
+
+        Map<Long, User> userMap = new HashMap<>();
+        if (!userIds.isEmpty()) {
+            List<User> users = userMapper.selectBatchIds(userIds);
+            users.forEach(u -> userMap.put(u.getId(), u));
+        }
+
+        // 3. 组装数据（管理端不需要评论详情，只需基本信息）
+        List<EssayVO> result = new ArrayList<>();
+        for (Essay essay : essays) {
+            EssayVO vo = new EssayVO();
+            vo.setId(essay.getId());
+            vo.setContent(essay.getContent());
+            vo.setImages(parseImages(essay.getImages()));
+            vo.setVideos(parseImages(essay.getVideos()));
+            vo.setComments(essay.getCommentsCount() != null ? essay.getCommentsCount() : 0);
+            vo.setDate(essay.getCreatedAt().format(DATE_FORMATTER));
+            vo.setUser(buildUserVO(userMap.get(essay.getUserId())));
+            vo.setCommentList(new ArrayList<>()); // 管理端不需要评论列表
+            result.add(vo);
+        }
+
+        return PageUtils.toPageVO(essayPage, result);
+    }
+
+    @Override
+    @Transactional
+    public void adminDeleteEssay(Long essayId) {
+        Essay essay = essayMapper.selectById(essayId);
+        if (essay == null) {
+            throw new RuntimeException("随笔不存在");
+        }
+        // 删除随笔及其评论
+        essayMapper.deleteById(essayId);
+        LambdaQueryWrapper<EssayComment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(EssayComment::getEssayId, essayId);
+        commentMapper.delete(wrapper);
+    }
+
+    @Override
+    @Transactional
+    public void adminDeleteComment(Long commentId) {
+        EssayComment comment = commentMapper.selectById(commentId);
+        if (comment == null) {
+            throw new RuntimeException("评论不存在");
+        }
+
+        // 删除评论及其回复
+        int deleteCount = 1;
+        if (comment.getParentId() == null || comment.getParentId() == 0) {
+            // 一级评论，删除其所有回复
+            LambdaQueryWrapper<EssayComment> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(EssayComment::getParentId, commentId);
+            deleteCount += commentMapper.delete(wrapper);
+        }
+        commentMapper.deleteById(commentId);
+
+        // 更新评论数
+        Essay essay = essayMapper.selectById(comment.getEssayId());
+        if (essay != null) {
+            essay.setCommentsCount(
+                    Math.max(0, (essay.getCommentsCount() != null ? essay.getCommentsCount() : 0) - deleteCount));
+            essayMapper.updateById(essay);
+        }
     }
 
     @Override

@@ -20,7 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/essay")
-@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
+@CrossOrigin
 public class EssayController {
 
     @Autowired
@@ -175,11 +175,117 @@ public class EssayController {
             File destFile = new File(essayImagePath + newFilename);
             file.transferTo(destFile);
 
-            // 返回访问URL
-            String imageUrl = "http://localhost:9999/uploads/essays/" + newFilename;
+            // 返回相对路径
+            String imageUrl = "/uploads/essays/" + newFilename;
             return Result.success(imageUrl);
         } catch (IOException e) {
             return Result.error("上传失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 上传随笔视频
+     */
+    @PostMapping("/uploadVideo")
+    public Result<String> uploadVideo(@RequestParam("file") MultipartFile file, HttpServletRequest httpRequest) {
+        Long userId = getCurrentUserId(httpRequest);
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+
+        if (file.isEmpty()) {
+            return Result.error("文件不能为空");
+        }
+
+        // 验证文件类型
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("video/")) {
+            return Result.error("只能上传视频文件");
+        }
+
+        // 验证文件大小（最大100MB）
+        if (file.getSize() > 100 * 1024 * 1024) {
+            return Result.error("视频大小不能超过100MB");
+        }
+
+        try {
+            // 生成文件名
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String newFilename = UUID.randomUUID().toString() + extension;
+
+            // 保存文件
+            String essayVideoPath = uploadPath + "essays/videos/";
+            File dir = new File(essayVideoPath);
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            File destFile = new File(essayVideoPath + newFilename);
+            file.transferTo(destFile);
+
+            // 返回相对路径
+            String videoUrl = "/uploads/essays/videos/" + newFilename;
+            return Result.success(videoUrl);
+        } catch (IOException e) {
+            return Result.error("上传失败: " + e.getMessage());
+        }
+    }
+
+    // ==================== 管理端接口 ====================
+
+    /**
+     * 管理端：获取随笔列表（分页）
+     */
+    @GetMapping("/admin/list")
+    public Result<PageVO<EssayVO>> getAdminEssayList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword,
+            HttpServletRequest httpRequest) {
+        Long userId = getCurrentUserId(httpRequest);
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+        int[] params = PageUtils.validateParams(page, size);
+        PageVO<EssayVO> result = essayService.getAdminEssayList(params[0], params[1], keyword);
+        return Result.success(result);
+    }
+
+    /**
+     * 管理端：删除随笔（管理员可删除任何随笔）
+     */
+    @DeleteMapping("/admin/{id}")
+    public Result<Void> adminDeleteEssay(@PathVariable Long id, HttpServletRequest httpRequest) {
+        Long userId = getCurrentUserId(httpRequest);
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+        try {
+            essayService.adminDeleteEssay(id);
+            return Result.success();
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 管理端：删除评论（管理员可删除任何评论）
+     */
+    @DeleteMapping("/admin/comment/{id}")
+    public Result<Void> adminDeleteComment(@PathVariable Long id, HttpServletRequest httpRequest) {
+        Long userId = getCurrentUserId(httpRequest);
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+        try {
+            essayService.adminDeleteComment(id);
+            return Result.success();
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
         }
     }
 

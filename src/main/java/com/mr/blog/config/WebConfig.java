@@ -12,7 +12,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${file.upload-path:E:/blog/blog-code/uploads/}")
     private String uploadPath;
 
-    @Value("${cors.allowed-origins:http://localhost:8888}")
+    @Value("${cors.allowed-origins:http://localhost:8081,http://localhost:8888}")
     private String allowedOrigins;
 
     @Override

@@ -15,16 +15,19 @@ public class MessageVO {
     private String date;
     private UserVO user;
     private List<ReplyVO> replies;
-    
+
     @Data
     public static class UserVO {
         private Long id;
         private String name;
         private String avatar;
         private Integer level;
+        private String levelName; // 等级名称
+        private String levelIcon; // 等级图标
+        private String levelColor; // 等级颜色
         private String title;
     }
-    
+
     @Data
     public static class ReplyVO {
         private Long id;
@@ -34,4 +37,3 @@ public class MessageVO {
         private String replyTo;
     }
 }
-

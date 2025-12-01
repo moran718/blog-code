@@ -30,14 +30,19 @@ public class User {
     private String bio;
 
     /**
-     * 用户等级 1-5
+     * 经验值
      */
-    private Integer level;
+    private Integer exp;
 
     /**
-     * 用户称号
+     * 等级ID，关联level表
      */
-    private String title;
+    private Integer levelId;
+
+    /**
+     * 角色：0-普通用户，1-管理员
+     */
+    private Integer role;
 
     private LocalDateTime createTime;
 

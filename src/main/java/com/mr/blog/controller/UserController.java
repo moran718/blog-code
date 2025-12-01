@@ -1,11 +1,14 @@
 package com.mr.blog.controller;
 
 import com.mr.blog.common.Result;
+import com.mr.blog.dto.AdminUserVO;
 import com.mr.blog.dto.LoginRequest;
+import com.mr.blog.dto.PageVO;
 import com.mr.blog.dto.RegisterRequest;
 import com.mr.blog.entity.User;
 import com.mr.blog.service.UserService;
 import com.mr.blog.utils.JwtUtils;
+import com.mr.blog.utils.PageUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,11 +19,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user")
-@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
+@CrossOrigin
 public class UserController {
 
     @Autowired
@@ -117,6 +121,34 @@ public class UserController {
     @PostMapping("/sendCode")
     public Result<String> sendCode(@RequestParam String email) {
         return userService.sendCode(email);
+    }
+
+    /**
+     * 重置密码
+     */
+    @PostMapping("/resetPassword")
+    public Result<String> resetPassword(@RequestBody java.util.Map<String, String> params) {
+        String email = params.get("email");
+        String code = params.get("code");
+        String newPassword = params.get("newPassword");
+        return userService.resetPassword(email, code, newPassword);
+    }
+
+    /**
+     * 修改密码（需验证旧密码）
+     */
+    @PostMapping("/changePassword")
+    public Result<String> changePassword(@RequestBody java.util.Map<String, String> params,
+            HttpServletRequest request) {
+        String token = getTokenFromCookies(request);
+        if (token == null || !jwtUtils.validateToken(token)) {
+            return Result.error("未登录或登录已过期");
+        }
+
+        Long userId = jwtUtils.getUserIdFromToken(token);
+        String oldPassword = params.get("oldPassword");
+        String newPassword = params.get("newPassword");
+        return userService.changePassword(userId, oldPassword, newPassword);
     }
 
     /**
@@ -260,8 +292,8 @@ public class UserController {
             File destFile = new File(uploadDir, newFilename);
             file.transferTo(destFile);
 
-            // 生成访问 URL
-            String avatarUrl = "http://localhost:9999/uploads/avatars/" + newFilename;
+            // 生成相对路径
+            String avatarUrl = "/uploads/avatars/" + newFilename;
 
             // 更新用户头像
             Long userId = jwtUtils.getUserIdFromToken(token);
@@ -272,6 +304,150 @@ public class UserController {
             return Result.success("上传成功", avatarUrl);
         } catch (IOException e) {
             return Result.error("上传失败：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取管理员信息（用于首页展示）
+     */
+    @GetMapping("/admin")
+    public Result<User> getAdminInfo() {
+        User admin = userService.getAdmin();
+        if (admin == null) {
+            return Result.error("管理员不存在");
+        }
+        admin.setPassword(null);
+        admin.setEmail(null); // 隐藏邮箱
+        return Result.success("获取成功", admin);
+    }
+
+    @Autowired
+    private com.mr.blog.mapper.RecordMapper recordMapper;
+
+    @Autowired
+    private com.mr.blog.mapper.RecordCategoryMapper categoryMapper;
+
+    @Autowired
+    private com.mr.blog.service.SiteVisitService siteVisitService;
+
+    /**
+     * 获取博主统计信息（文章数、分类数、网站访问量）
+     */
+    @GetMapping("/admin/stats")
+    public Result<java.util.Map<String, Object>> getAdminStats() {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+
+        // 统计已发布文章数
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<com.mr.blog.entity.Record> recordWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        recordWrapper.eq(com.mr.blog.entity.Record::getStatus, 1);
+        long articleCount = recordMapper.selectCount(recordWrapper);
+        stats.put("articles", articleCount);
+
+        // 统计分类数
+        long categoryCount = categoryMapper.selectCount(null);
+        stats.put("categories", categoryCount);
+
+        // 获取网站总访问量
+        long totalViews = siteVisitService.getTotalVisitCount();
+        stats.put("views", totalViews);
+
+        return Result.success(stats);
+    }
+
+    /**
+     * 记录网站访问（前端页面加载时调用）
+     */
+    @PostMapping("/visit")
+    public Result<Void> recordVisit() {
+        siteVisitService.recordVisit();
+        return Result.success();
+    }
+
+    // ==================== 管理端接口 ====================
+
+    /**
+     * 获取用户列表（管理端）
+     */
+    @GetMapping("/admin/list")
+    public Result<PageVO<AdminUserVO>> getAdminUserList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer role,
+            HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return Result.error(403, "无权限访问");
+        }
+
+        int[] params = PageUtils.validateParams(page, size);
+        PageVO<AdminUserVO> result = userService.getAdminUserList(params[0], params[1], keyword, role);
+        return Result.success(result);
+    }
+
+    /**
+     * 更新用户信息（管理端）
+     */
+    @PutMapping("/admin/update")
+    public Result<String> updateUserByAdmin(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return Result.error(403, "无权限访问");
+        }
+
+        Long id = body.get("id") != null ? Long.valueOf(body.get("id").toString()) : null;
+        String username = body.get("username") != null ? body.get("username").toString() : null;
+        Integer gender = body.get("gender") != null ? Integer.valueOf(body.get("gender").toString()) : null;
+        String bio = body.get("bio") != null ? body.get("bio").toString() : null;
+
+        if (id == null) {
+            return Result.error("用户ID不能为空");
+        }
+
+        try {
+            userService.updateUserByAdmin(id, username, gender, bio);
+            return Result.success("更新成功");
+        } catch (Exception e) {
+            return Result.error("更新失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 修改用户角色（管理端）
+     */
+    @PutMapping("/admin/role")
+    public Result<String> updateUserRole(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return Result.error(403, "无权限访问");
+        }
+
+        Long id = body.get("id") != null ? Long.valueOf(body.get("id").toString()) : null;
+        Integer role = body.get("role") != null ? Integer.valueOf(body.get("role").toString()) : null;
+
+        if (id == null || role == null) {
+            return Result.error("参数不完整");
+        }
+
+        try {
+            userService.updateUserRole(id, role);
+            return Result.success("角色更新成功");
+        } catch (Exception e) {
+            return Result.error("更新失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除用户（管理端）
+     */
+    @DeleteMapping("/admin/delete")
+    public Result<String> deleteUserByAdmin(@RequestParam Long id, HttpServletRequest request) {
+        if (!isAdmin(request)) {
+            return Result.error(403, "无权限访问");
+        }
+
+        try {
+            userService.deleteUserByAdmin(id);
+            return Result.success("删除成功");
+        } catch (Exception e) {
+            return Result.error("删除失败: " + e.getMessage());
         }
     }
 
@@ -288,5 +464,18 @@ public class UserController {
             }
         }
         return null;
+    }
+
+    /**
+     * 检查是否是管理员
+     */
+    private boolean isAdmin(HttpServletRequest request) {
+        String token = getTokenFromCookies(request);
+        if (token == null || !jwtUtils.validateToken(token)) {
+            return false;
+        }
+        Long userId = jwtUtils.getUserIdFromToken(token);
+        User user = userService.getById(userId);
+        return user != null && user.getRole() == 1;
     }
 }
