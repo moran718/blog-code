@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -48,7 +49,7 @@ public class UserController {
      * 用户登录
      */
     @PostMapping("/login")
-    public Result<User> login(@RequestBody LoginRequest request, HttpServletResponse response) {
+    public Result<Map<String, Object>> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         Result<User> result = userService.login(request);
 
         if (result.getCode() == 200 && result.getData() != null) {
@@ -61,9 +62,15 @@ public class UserController {
                     "token=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=None; Secure",
                     token, jwtUtils.getExpirationSeconds());
             response.addHeader("Set-Cookie", cookieValue);
+
+            // 同时在响应体中返回 token，支持前端使用 localStorage 存储
+            Map<String, Object> data = new HashMap<>();
+            data.put("user", user);
+            data.put("token", token);
+            return Result.success("登录成功", data);
         }
 
-        return result;
+        return Result.error(result.getMessage());
     }
 
     /**
@@ -83,17 +90,7 @@ public class UserController {
      */
     @GetMapping("/info")
     public Result<User> getUserInfo(HttpServletRequest request) {
-        // 从 Cookie 中获取 Token
-        String token = null;
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("token".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
-                }
-            }
-        }
+        String token = getTokenFromRequest(request);
 
         if (token == null || !jwtUtils.validateToken(token)) {
             return Result.error("未登录或登录已过期");
@@ -108,6 +105,29 @@ public class UserController {
 
         user.setPassword(null);
         return Result.success("获取成功", user);
+    }
+
+    /**
+     * 从请求中获取 Token（优先从 Authorization Header，其次从 Cookie）
+     */
+    private String getTokenFromRequest(HttpServletRequest request) {
+        // 优先从 Authorization Header 获取
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        // 其次从 Cookie 中获取
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -447,9 +467,16 @@ public class UserController {
     }
 
     /**
-     * 从 Cookie 中获取 Token
+     * 从请求中获取 Token（优先从 Authorization Header，其次从 Cookie）
      */
     private String getTokenFromCookies(HttpServletRequest request) {
+        // 优先从 Authorization Header 获取
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        // 其次从 Cookie 中获取
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {

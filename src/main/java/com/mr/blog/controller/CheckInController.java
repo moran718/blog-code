@@ -57,19 +57,32 @@ public class CheckInController {
     }
 
     /**
-     * 从Cookie获取当前用户ID
+     * 从请求中获取当前用户ID（优先从 Authorization Header，其次从 Cookie）
      */
     private Long getCurrentUserId(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("token".equals(cookie.getName())) {
-                    String token = cookie.getValue();
-                    if (jwtUtils.validateToken(token)) {
-                        return jwtUtils.getUserIdFromToken(token);
+        String token = null;
+
+        // 优先从 Authorization Header 获取
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+
+        // 其次从 Cookie 中获取
+        if (token == null) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("token".equals(cookie.getName())) {
+                        token = cookie.getValue();
+                        break;
                     }
                 }
             }
+        }
+
+        if (token != null && jwtUtils.validateToken(token)) {
+            return jwtUtils.getUserIdFromToken(token);
         }
         return null;
     }
