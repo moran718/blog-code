@@ -56,13 +56,11 @@ public class UserController {
             // 生成 JWT Token
             String token = jwtUtils.generateToken(user.getId(), user.getEmail());
 
-            // 设置 HttpOnly Cookie
-            Cookie cookie = new Cookie("token", token);
-            cookie.setHttpOnly(true); // 防止 XSS 攻击
-            cookie.setPath("/");
-            cookie.setMaxAge(jwtUtils.getExpirationSeconds()); // 7天过期
-            // cookie.setSecure(true); // 生产环境启用，仅 HTTPS 传输
-            response.addCookie(cookie);
+            // 设置跨域 Cookie (使用 Set-Cookie header 以支持 SameSite 属性)
+            String cookieValue = String.format(
+                    "token=%s; Path=/; Max-Age=%d; HttpOnly; SameSite=None; Secure",
+                    token, jwtUtils.getExpirationSeconds());
+            response.addHeader("Set-Cookie", cookieValue);
         }
 
         return result;
@@ -73,12 +71,9 @@ public class UserController {
      */
     @PostMapping("/logout")
     public Result<String> logout(HttpServletResponse response) {
-        // 清除 Cookie
-        Cookie cookie = new Cookie("token", null);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0); // 立即过期
-        response.addCookie(cookie);
+        // 清除跨域 Cookie
+        String cookieValue = "token=; Path=/; Max-Age=0; HttpOnly; SameSite=None; Secure";
+        response.addHeader("Set-Cookie", cookieValue);
 
         return Result.success("登出成功");
     }
