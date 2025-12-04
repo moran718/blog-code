@@ -11,11 +11,32 @@
  Target Server Version : 80029
  File Encoding         : 65001
 
- Date: 02/12/2025 10:04:58
+ Date: 04/12/2025 11:03:40
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for browse_log
+-- ----------------------------
+DROP TABLE IF EXISTS `browse_log`;
+CREATE TABLE `browse_log`  (
+  `id` bigint(0) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '访问IP地址',
+  `url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '访问的URL',
+  `user_agent` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '浏览器User-Agent',
+  `referer` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '来源页面',
+  `created_at` datetime(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0) COMMENT '访问时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_ip`(`ip`) USING BTREE,
+  INDEX `idx_created_at`(`created_at`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '浏览记录表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of browse_log
+-- ----------------------------
+INSERT INTO `browse_log` VALUES (9, '127.0.0.1', 'http://localhost:8888/', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36', 'http://localhost:8888', '2025-12-04 11:02:15');
 
 -- ----------------------------
 -- Table structure for check_in
@@ -31,7 +52,7 @@ CREATE TABLE `check_in`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_user_date`(`user_id`, `check_date`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '签到记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '签到记录表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of check_in
@@ -41,6 +62,7 @@ INSERT INTO `check_in` VALUES (3, 2, '2025-11-29', 10, 1, '2025-11-29 12:09:22')
 INSERT INTO `check_in` VALUES (4, 2, '2025-11-30', 15, 2, '2025-11-30 10:14:18');
 INSERT INTO `check_in` VALUES (5, 1, '2025-11-30', 15, 2, '2025-11-30 13:27:41');
 INSERT INTO `check_in` VALUES (6, 1, '2025-12-01', 20, 3, '2025-12-01 14:56:31');
+INSERT INTO `check_in` VALUES (7, 1, '2025-12-04', 10, 1, '2025-12-04 10:53:16');
 
 -- ----------------------------
 -- Table structure for essay
@@ -58,7 +80,7 @@ CREATE TABLE `essay`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_created_at`(`created_at`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '随笔表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '随笔表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of essay
@@ -86,7 +108,7 @@ CREATE TABLE `essay_comment`  (
   INDEX `idx_essay_id`(`essay_id`) USING BTREE,
   INDEX `idx_parent_id`(`parent_id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '随笔评论表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '随笔评论表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of essay_comment
@@ -146,7 +168,7 @@ CREATE TABLE `message`  (
   INDEX `idx_type`(`type`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE,
   INDEX `idx_created_at`(`created_at`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 207 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '留言表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 206 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '留言表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of message
@@ -391,7 +413,7 @@ CREATE TABLE `message_reply`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_message_id`(`message_id`) USING BTREE,
   INDEX `idx_user_id`(`user_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '留言回复表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '留言回复表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of message_reply
@@ -467,7 +489,7 @@ CREATE TABLE `record`  (
   INDEX `idx_created_at`(`created_at`) USING BTREE,
   INDEX `idx_views`(`views`) USING BTREE,
   INDEX `idx_likes`(`likes`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of record
@@ -499,7 +521,7 @@ CREATE TABLE `record_category`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_parent_id`(`parent_id`) USING BTREE,
   INDEX `idx_category_key`(`category_key`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录分类表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 22 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录分类表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of record_category
@@ -541,7 +563,7 @@ CREATE TABLE `record_like`  (
   UNIQUE INDEX `uk_record_user`(`record_id`, `user_id`) USING BTREE,
   UNIQUE INDEX `uk_record_ip`(`record_id`, `ip_address`) USING BTREE,
   INDEX `idx_record_id`(`record_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录点赞表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录点赞表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of record_like
@@ -563,7 +585,7 @@ CREATE TABLE `record_tag`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `name`(`name`) USING BTREE,
   INDEX `idx_use_count`(`use_count`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '标签表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '标签表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of record_tag
@@ -593,7 +615,7 @@ CREATE TABLE `record_tag_relation`  (
   UNIQUE INDEX `uk_record_tag`(`record_id`, `tag_id`) USING BTREE,
   INDEX `idx_record_id`(`record_id`) USING BTREE,
   INDEX `idx_tag_id`(`tag_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录-标签关联表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 29 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '记录-标签关联表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of record_tag_relation
@@ -625,7 +647,7 @@ CREATE TABLE `site_visit`  (
   `updated_at` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_visit_date`(`visit_date`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '网站访问统计表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '网站访问统计表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of site_visit
@@ -633,6 +655,7 @@ CREATE TABLE `site_visit`  (
 INSERT INTO `site_visit` VALUES (1, '2025-11-29', 3, '2025-11-29 13:06:39', '2025-11-29 13:55:18');
 INSERT INTO `site_visit` VALUES (2, '2025-11-30', 1, '2025-11-30 10:14:03', '2025-11-30 10:14:03');
 INSERT INTO `site_visit` VALUES (3, '2025-12-01', 3, '2025-12-01 14:53:48', '2025-12-01 16:11:46');
+INSERT INTO `site_visit` VALUES (4, '2025-12-04', 2, '2025-12-04 10:52:52', '2025-12-04 10:54:34');
 
 -- ----------------------------
 -- Table structure for user
@@ -656,12 +679,12 @@ CREATE TABLE `user`  (
   UNIQUE INDEX `uk_email`(`email`) USING BTREE,
   INDEX `fk_user_level`(`level_id`) USING BTREE,
   CONSTRAINT `fk_user_level` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 9 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '用户表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of user
 -- ----------------------------
-INSERT INTO `user` VALUES (1, 'Dawn', '3095882640@qq.com', '4b4baedff8691e5b9a01275beab4de0e', 1, 'http://localhost:9999/uploads/avatars/5715695f-4d1e-4ccb-be2d-722f62eae8e9.jpg', '时光不语，却回答了所有问题', '2025-11-26 14:54:01', '2025-12-01 14:56:31', 135, 2, 1);
+INSERT INTO `user` VALUES (1, 'Dawn', '3095882640@qq.com', '4b4baedff8691e5b9a01275beab4de0e', 1, 'http://localhost:9999/uploads/avatars/5715695f-4d1e-4ccb-be2d-722f62eae8e9.jpg', '时光不语，却回答了所有问题', '2025-11-26 14:54:01', '2025-12-04 10:53:16', 145, 2, 1);
 INSERT INTO `user` VALUES (2, '测试用户', 'sara@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sara', '简介测试', '2025-11-26 16:08:14', '2025-11-30 10:14:18', 25, 1, 0);
 INSERT INTO `user` VALUES (3, '江硕', 'jiangshuo@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=jiangshuo', '前端开发者', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 0, 1, 0);
 INSERT INTO `user` VALUES (4, '经年未远', 'jingnianyuan@test.com', 'e10adc3949ba59abbe56e057f20f883e', 1, 'https://api.dicebear.com/7.x/avataaars/svg?seed=jingnianyuan', '学习中', '2025-11-26 16:08:14', '2025-11-26 16:08:14', 0, 1, 0);
