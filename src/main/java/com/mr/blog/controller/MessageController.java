@@ -9,6 +9,7 @@ import com.mr.blog.dto.MessageVO;
 import com.mr.blog.dto.PageVO;
 import com.mr.blog.entity.User;
 import com.mr.blog.service.MessageService;
+import com.mr.blog.service.SensitiveWordService;
 import com.mr.blog.service.UserService;
 import com.mr.blog.utils.JwtUtils;
 import com.mr.blog.utils.PageUtils;
@@ -30,6 +31,9 @@ public class MessageController {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    private SensitiveWordService sensitiveWordService;
 
     /**
      * 获取弹幕列表
@@ -56,7 +60,14 @@ public class MessageController {
             return Result.error("弹幕内容不能为空");
         }
 
-        messageService.sendDanmaku(userId, content.trim());
+        // 敏感词过滤
+        try {
+            content = sensitiveWordService.filterContent(content.trim());
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
+
+        messageService.sendDanmaku(userId, content);
         return Result.success("发送成功");
     }
 
@@ -118,6 +129,15 @@ public class MessageController {
             return Result.error("留言内容不能为空");
         }
 
+        // 敏感词过滤
+        if (body.getContent() != null && !body.getContent().trim().isEmpty()) {
+            try {
+                body.setContent(sensitiveWordService.filterContent(body.getContent()));
+            } catch (RuntimeException e) {
+                return Result.error(e.getMessage());
+            }
+        }
+
         MessageVO vo = messageService.addMessage(userId, body);
         return Result.success(vo);
     }
@@ -137,6 +157,13 @@ public class MessageController {
         }
         if (body.getContent() == null || body.getContent().trim().isEmpty()) {
             return Result.error("回复内容不能为空");
+        }
+
+        // 敏感词过滤
+        try {
+            body.setContent(sensitiveWordService.filterContent(body.getContent()));
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
         }
 
         MessageVO.ReplyVO vo = messageService.addReply(userId, body);

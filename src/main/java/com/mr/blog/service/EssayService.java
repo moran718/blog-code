@@ -53,4 +53,9 @@ public interface EssayService {
      * 管理端：删除评论（不检查权限）
      */
     void adminDeleteComment(Long commentId);
+
+    /**
+     * 管理端：更新随笔
+     */
+    void adminUpdateEssay(Long essayId, EssayRequest request);
 }

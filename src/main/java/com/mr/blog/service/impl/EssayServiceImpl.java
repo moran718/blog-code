@@ -399,6 +399,20 @@ public class EssayServiceImpl implements EssayService {
     }
 
     @Override
+    @Transactional
+    public void adminUpdateEssay(Long essayId, EssayRequest request) {
+        Essay essay = essayMapper.selectById(essayId);
+        if (essay == null) {
+            throw new RuntimeException("随笔不存在");
+        }
+        essay.setContent(request.getContent());
+        essay.setImages(joinImages(request.getImages()));
+        essay.setVideos(joinImages(request.getVideos()));
+        essay.setUpdatedAt(LocalDateTime.now());
+        essayMapper.updateById(essay);
+    }
+
+    @Override
     public PageVO<EssayVO.CommentVO> getEssayComments(Long essayId, int page, int pageSize) {
         // 1. 分页查询一级评论
         LambdaQueryWrapper<EssayComment> wrapper = new LambdaQueryWrapper<>();

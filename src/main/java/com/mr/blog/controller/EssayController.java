@@ -6,6 +6,7 @@ import com.mr.blog.dto.EssayRequest;
 import com.mr.blog.dto.EssayVO;
 import com.mr.blog.dto.PageVO;
 import com.mr.blog.service.EssayService;
+import com.mr.blog.service.SensitiveWordService;
 import com.mr.blog.utils.JwtUtils;
 import com.mr.blog.utils.PageUtils;
 import jakarta.servlet.http.Cookie;
@@ -28,6 +29,9 @@ public class EssayController {
 
     @Autowired
     private JwtUtils jwtUtils;
+
+    @Autowired
+    private SensitiveWordService sensitiveWordService;
 
     @org.springframework.beans.factory.annotation.Value("${FILE_UPLOAD_PATH:${file.upload-path:uploads/}}")
     private String uploadPath;
@@ -55,6 +59,13 @@ public class EssayController {
         }
         if (request.getContent() == null || request.getContent().trim().isEmpty()) {
             return Result.error("随笔内容不能为空");
+        }
+        // 敏感词过滤
+        try {
+            String filteredContent = sensitiveWordService.filterContent(request.getContent());
+            request.setContent(filteredContent);
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
         }
         essayService.publishEssay(userId, request);
         return Result.success();
@@ -93,6 +104,17 @@ public class EssayController {
                 && (request.getImages() == null || request.getImages().isEmpty())) {
             return Result.error("评论内容或图片不能为空");
         }
+
+        // 敏感词过滤
+        if (request.getContent() != null && !request.getContent().trim().isEmpty()) {
+            try {
+                String filteredContent = sensitiveWordService.filterContent(request.getContent());
+                request.setContent(filteredContent);
+            } catch (RuntimeException e) {
+                return Result.error(e.getMessage());
+            }
+        }
+
         try {
             EssayVO.CommentVO commentVO = essayService.addComment(userId, request);
             return Result.success(commentVO);
@@ -283,6 +305,30 @@ public class EssayController {
         }
         try {
             essayService.adminDeleteComment(id);
+            return Result.success();
+        } catch (RuntimeException e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 管理端：更新随笔
+     */
+    @PutMapping("/admin/{id}")
+    public Result<Void> adminUpdateEssay(@PathVariable Long id, @RequestBody EssayRequest request,
+            HttpServletRequest httpRequest) {
+        Long userId = getCurrentUserId(httpRequest);
+        if (userId == null) {
+            return Result.error(401, "请先登录");
+        }
+        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
+            return Result.error("随笔内容不能为空");
+        }
+        // 敏感词过滤
+        try {
+            String filteredContent = sensitiveWordService.filterContent(request.getContent());
+            request.setContent(filteredContent);
+            essayService.adminUpdateEssay(id, request);
             return Result.success();
         } catch (RuntimeException e) {
             return Result.error(e.getMessage());
