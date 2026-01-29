@@ -14,6 +14,7 @@ import com.mr.blog.mapper.EssayCommentMapper;
 import com.mr.blog.mapper.EssayMapper;
 import com.mr.blog.mapper.LevelMapper;
 import com.mr.blog.mapper.UserMapper;
+import com.mr.blog.service.AiReplyService;
 import com.mr.blog.service.EssayService;
 import com.mr.blog.utils.PageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ public class EssayServiceImpl implements EssayService {
 
     @Autowired
     private LevelMapper levelMapper;
+
+    @Autowired
+    private AiReplyService aiReplyService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -220,6 +224,11 @@ public class EssayServiceImpl implements EssayService {
         commentVO.setImages(parseImages(comment.getImages()));
         commentVO.setDate(comment.getCreatedAt().format(DATE_FORMATTER));
         commentVO.setReplies(new ArrayList<>());
+
+        // 触发 AI 自动回复（仅对一级评论）
+        if ((request.getParentId() == null || request.getParentId() == 0) && aiReplyService.isAiReplyEnabled()) {
+            aiReplyService.generateAndPostReply(request.getEssayId(), comment.getId(), request.getContent());
+        }
 
         return commentVO;
     }
@@ -418,7 +427,7 @@ public class EssayServiceImpl implements EssayService {
         LambdaQueryWrapper<EssayComment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(EssayComment::getEssayId, essayId)
                 .and(w -> w.isNull(EssayComment::getParentId).or().eq(EssayComment::getParentId, 0L))
-                .orderByAsc(EssayComment::getCreatedAt);
+                .orderByDesc(EssayComment::getCreatedAt);
 
         Page<EssayComment> pageParam = PageUtils.createPage(page, pageSize);
         Page<EssayComment> commentPage = commentMapper.selectPage(pageParam, wrapper);

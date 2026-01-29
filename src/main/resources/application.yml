@@ -47,3 +47,11 @@ jwt:
 # 文件上传配置
 file:
   upload-path: E:/blog/blog-code/uploads/
+
+# Spring AI 通义千问配置
+spring.ai:
+  dashscope:
+    api-key: ${DASHSCOPE_API_KEY:sk-474dae699d1f4299b50d2859fd3f326d}
+    chat:
+      options:
+        model: qwen-turbo
