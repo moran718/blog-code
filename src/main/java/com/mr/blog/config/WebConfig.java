@@ -40,5 +40,12 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/uploads/**")
                 .allowedOrigins(origins)
                 .allowedMethods("GET");
+
+        // 允许 WebSocket 端点跨域（备用，WebSocketConfig 已有配置）
+        registry.addMapping("/ws/**")
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET", "POST")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }
